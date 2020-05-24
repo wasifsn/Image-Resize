@@ -21,11 +21,14 @@ function creatAboutWindow() {
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
-    width: 500,
+    width: isDev ? 800 : 500,
     height: 600,
     title: "Image Resize",
     icon: "./assets/icons/Icon_256x256.png",
     resizable: isDev ? true : false,
+    webPreferences: {
+      nodeIntegration: true,
+    },
   });
   // mainWindow.loadURL(`file://${__dirname}/app/index.html`);
   mainWindow.loadFile(`./app/index.html`);
@@ -38,6 +41,7 @@ app.on("ready", () => {
   globalShortcut.register(isMac ? "Command+Alt+i" : "Ctrl+Shift+i", () => {
     mainWindow.toggleDevTools();
   });
+  if (isDev) mainWindow.webContents.openDevTools();
   // globalShortcut.register("CmdorCtrl+R", () => {
   //   mainWindow.reload();
   // });
@@ -58,7 +62,7 @@ const menu = [
   ...(!isMac
     ? [
         {
-          label: "Help",
+          label: "Info",
           submenu: [{ label: "About", click: creatAboutWindow }],
         },
       ]
@@ -67,7 +71,7 @@ const menu = [
   ...(isDev
     ? [
         {
-          label: "Developer",
+          label: "Dev",
           submenu: [
             { role: "reload" },
             { role: "forceReload" },

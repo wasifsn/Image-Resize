@@ -48,7 +48,7 @@
           type="submit"
           value="Resize"
           class="btn blue-grey darken-3"
-          id=""
+          id="image-path"
         />
       </form>
 
@@ -63,15 +63,31 @@
     <script>
       const path = require("path");
       const os = require("os");
-
-      const form = document.querySelector("#image-path");
+      const { ipcRenderer } = require("electron");
+      const form = document.querySelector("#image-form");
       const slider = document.querySelector("#slider");
       const img = document.querySelector("#img");
-
       document.querySelector("#output-path").innerText = path.join(
         os.homedir(),
-        "imageResize"
+        "images_shrinked"
       );
+
+      form.addEventListener("submit", e => {
+        if (img.files[0]) {
+          e.preventDefault();
+          let path = img.files[0].path,
+            quality = slider.value;
+
+          ipcRenderer.send("image:shrink", { path, quality });
+        } else {
+          alert("Please Select an Image To Resize");
+        }
+      });
+      ipcRenderer.on("image:shrinked", () => {
+        M.toast({
+          html: `The Image Quality have Been Downgraded to ${slider.value}%`,
+        });
+      });
     </script>
   </body>
 </html>

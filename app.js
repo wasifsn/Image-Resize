@@ -1,4 +1,17 @@
-const { app, BrowserWindow, Menu, globalShortcut } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  Menu,
+  globalShortcut,
+  ipcMain,
+  shell,
+} = require("electron");
+const path = require("path");
+const os = require("os");
+const imageMin = require("imagemin");
+const imageMinMoz = require("imagemin-mozjpeg");
+const imageMinPNQ = require("imagemin-pngquant");
+const slash = require("slash");
 //set node env
 process.env.NODE_ENV = "development";
 
@@ -34,6 +47,31 @@ function createMainWindow() {
   mainWindow.loadFile(`./app/index.html`);
 }
 
+ipcMain.on("image:shrink", (e, options) => {
+  options.destination = path.join(os.homedir(), "images_shrinked");
+  imageResize(options);
+});
+
+async function imageResize({ path, quality, destination }) {
+  try {
+    const pngQuality = quality / 100;
+    console.log(slash(path), quality, destination);
+    const files = await imageMin([slash(path)], {
+      destination,
+      plugins: [
+        imageMinMoz({ quality }),
+        imageMinPNQ({
+          quality: [pngQuality, pngQuality],
+        }),
+      ],
+    });
+    console.log(files);
+    shell.openPath(destination);
+    mainWindow.webContents.send("image:shrinked");
+  } catch (e) {
+    console.log(e);
+  }
+}
 app.on("ready", () => {
   createMainWindow();
   const mainMenu = Menu.buildFromTemplate(menu);
